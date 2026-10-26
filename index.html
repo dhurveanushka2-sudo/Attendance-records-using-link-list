@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Attendance Chain – Linked List Attendance Records</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef3f6;--surface:#fbfdfe;--ink:#14263a;--muted:#5a6b7b;--line:#c9d6df;--node:#1f7a8c;--p:#2e8b57;--a:#c0392b;--l:#c98a00;--grid:rgba(31,122,140,.09);
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1b27;--surface:#162636;--ink:#e6eef4;--muted:#93a6b6;--line:#2a4156;--node:#4cb8cc;--p:#4fc58a;--a:#ef7a6d;--l:#e8b53a;--grid:rgba(76,184,204,.08)}}
+:root[data-theme="dark"]{--bg:#0f1b27;--surface:#162636;--ink:#e6eef4;--muted:#93a6b6;--line:#2a4156;--node:#4cb8cc;--p:#4fc58a;--a:#ef7a6d;--l:#e8b53a;--grid:rgba(76,184,204,.08)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 "Source Sans 3",system-ui,sans-serif;
+background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px}
+main{max-width:1040px;margin:0 auto;padding:28px 18px 56px}
+h1,h2{font-family:"Bricolage Grotesque",system-ui,sans-serif;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(28px,5vw,44px);line-height:1.1}
+h2{font-size:20px;margin-bottom:12px}
+.lede{color:var(--muted);max-width:60ch;margin:8px 0 22px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:18px}
+.chainwrap{overflow-x:auto;padding:6px 2px 12px}
+.chain{display:flex;align-items:center;min-width:min-content;gap:0}
+.tag{font-weight:600;color:var(--muted);font-size:14px;padding:0 8px;white-space:nowrap}
+.node{display:flex;border:2px solid var(--node);border-radius:8px;background:var(--surface);min-width:150px;transition:box-shadow .2s,background .2s}
+.node .data{padding:8px 10px;flex:1}
+.node .data b{display:block;font-family:"Bricolage Grotesque",sans-serif}
+.node .data span{font-size:13px;color:var(--muted)}
+.node .ptr{width:28px;border-left:2px solid var(--node);display:grid;place-items:center;color:var(--node);font-size:12px}
+.node.hit{background:color-mix(in srgb,var(--node) 20%,var(--surface));box-shadow:0 0 0 4px color-mix(in srgb,var(--node) 35%,transparent)}
+.node.low{border-color:var(--a)}
+.arrow{width:30px;height:2px;background:var(--node);position:relative;flex:none}
+.arrow::after{content:"";position:absolute;right:-1px;top:-4px;border-left:8px solid var(--node);border-top:5px solid transparent;border-bottom:5px solid transparent}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+label{display:grid;gap:4px;font-size:14px;color:var(--muted)}
+input{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;min-width:0}
+button{font:inherit;font-weight:600;cursor:pointer;border-radius:6px;border:1px solid var(--node);background:var(--node);color:#fff;padding:8px 14px}
+button.ghost{background:transparent;color:var(--node)}
+:is(button,input):focus-visible{outline:3px solid var(--node);outline-offset:2px}
+.msg{min-height:1.5em;margin:10px 0 0;color:var(--muted);font-size:15px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+.call{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.call:last-child{border:0}
+.seg{display:flex;gap:4px;flex:none}
+.seg button{background:transparent;border-color:var(--line);color:var(--muted);padding:5px 10px}
+.seg button.on[data-s="P"]{background:var(--p);border-color:var(--p);color:#fff}
+.seg button.on[data-s="A"]{background:var(--a);border-color:var(--a);color:#fff}
+.seg button.on[data-s="L"]{background:var(--l);border-color:var(--l);color:#fff}
+.x{background:transparent;border:0;color:var(--muted);padding:4px 8px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-weight:600;color:var(--muted);font-size:14px}
+.bar{height:8px;border-radius:4px;background:var(--line);min-width:90px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--p)}
+.bar i.low{background:var(--a)}
+.stats{display:flex;flex-wrap:wrap;gap:22px;margin-bottom:12px}
+.stats div b{font:700 26px "Bricolage Grotesque",sans-serif;display:block}
+.stats div span{font-size:14px;color:var(--muted)}
+.code{font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:12px;overflow-x:auto;white-space:pre;margin:0}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>Attendance Chain</h1>
+<p class="lede">Every student is a node in a singly linked list. Add, search or remove students, take roll call for a date, and read the attendance summary.</p>
+
+<section class="panel" aria-label="Linked list">
+<h2>The linked list</h2>
+<div class="chainwrap"><div class="chain" id="chain"></div></div>
+<div class="row" style="margin-top:8px">
+<label>Search by roll number<input id="q" placeholder="e.g. 3"></label>
+<button class="ghost" id="searchBtn">Search</button>
+</div>
+<p class="msg" id="searchMsg"></p>
+</section>
+
+<div class="grid2">
+<section class="panel" aria-label="Roll call">
+<h2>Roll call</h2>
+<div class="row" style="margin-bottom:8px">
+<label>Date<input type="date" id="date"></label>
+<button class="ghost" id="allP">Mark all present</button>
+</div>
+<div id="calls"></div>
+</section>
+
+<section class="panel" aria-label="Add student">
+<h2>Add a student</h2>
+<div class="row">
+<label>Roll number<input id="roll" inputmode="numeric" placeholder="e.g. 11"></label>
+<label>Name<input id="name" placeholder="Full name"></label>
+<button id="addBtn">Add to end of list</button>
+</div>
+<p class="msg" id="addMsg"></p>
+<h2 style="margin-top:18px">Delete by roll number</h2>
+<div class="row">
+<label>Roll number<input id="delRoll" inputmode="numeric" placeholder="e.g. 4"></label>
+<button class="ghost" id="delBtn">Delete student</button>
+</div>
+<p class="msg" id="delMsg"></p>
+<h2 style="margin-top:18px">How it works</h2>
+<pre class="code">append(node):   walk to the last node, set last.next = node
+remove(roll):   find the previous node, set prev.next = cur.next
+find(roll):     start at head, follow next until a match or null
+summary():      traverse once, count P / A / L per node</pre>
+</section>
+</div>
+
+<section class="panel" aria-label="Summary">
+<h2>Attendance summary</h2>
+<div class="stats" id="stats"></div>
+<div class="tablewrap"><table>
+<thead><tr><th>Roll</th><th>Name</th><th>Present</th><th>Late</th><th>Absent</th><th>Attendance</th><th></th></tr></thead>
+<tbody id="rows"></tbody></table></div>
+<p class="msg">Late counts as attended. A date with no mark for a student counts as absent. Below 75% is flagged as short.</p>
+</section>
+</main>
+
+<script>
+class Node{constructor(roll,name){this.roll=roll;this.name=name;this.records={};this.next=null}}
+class LinkedList{
+constructor(){this.head=null;this.size=0}
+append(n){if(!this.head)this.head=n;else{let c=this.head;while(c.next)c=c.next;c.next=n}this.size++}
+remove(roll){let prev=null,c=this.head;while(c){if(c.roll===roll){if(prev)prev.next=c.next;else this.head=c.next;this.size--;return true}prev=c;c=c.next}return false}
+find(roll){let c=this.head,steps=0;while(c){steps++;if(c.roll===roll)return{node:c,steps};c=c.next}return{node:null,steps}}
+toArray(){const a=[];for(let c=this.head;c;c=c.next)a.push(c);return a}
+}
+const list=new LinkedList();
+const KEY="attendance-chain-v2";
+const $=id=>document.getElementById(id);
+const today=new Date().toISOString().slice(0,10);
+let hit=null;
+
+function save(){try{localStorage.setItem(KEY,JSON.stringify(list.toArray().map(n=>({roll:n.roll,name:n.name,records:n.records}))))}catch(e){}}
+function load(){
+let data=null;
+try{data=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
+if(!data||!data.length){
+const d=[0,1,2,3,4,5,6,7].map(i=>{const t=new Date();t.setDate(t.getDate()-(i+1));return t.toISOString().slice(0,10)});
+const names=["Aarav Patil","Isha Kulkarni","Rohan Deshmukh","Sneha Joshi","Omkar Pawar","Kavya Bhosale","Aditya Shinde","Tanvi More","Varad Gaikwad","Riya Chavan","Siddharth Jadhav","Pooja Kale"];
+const pat=["PPPLPPPP","PAPPPPLP","AAPLAPAP","PPPPPPPP","PALAPPAL","PPLPPAPP","PPPPLPPP","APAPAPAA","PPPAPPPL","PPPPPPAP","LPAPPALP","PPAPPPPP"];
+data=names.map((nm,i)=>({roll:i+1,name:nm,records:Object.fromEntries(d.map((dt,k)=>[dt,pat[i][k]]))}));
+}
+data.forEach(o=>{const n=new Node(o.roll,o.name);n.records=o.records||{};list.append(n)});
+}
+function sessions(){const s=new Set();list.toArray().forEach(n=>Object.keys(n.records).forEach(d=>s.add(d)));return s}
+function stat(n,total){let p=0,l=0;for(const d of sessions()){const r=n.records[d];if(r==="P")p++;else if(r==="L")l++}
+return{p,l,a:total-p-l,pct:total?Math.round((p+l)/total*100):0}}
+
+function render(){
+const nodes=list.toArray(),total=sessions().size;
+$("chain").innerHTML='<span class="tag">HEAD</span><span class="arrow"></span>'+
+(nodes.length?nodes.map(n=>{const s=stat(n,total);
+return `<div class="node${hit===n.roll?" hit":""}${total&&s.pct<75?" low":""}"><div class="data"><b>${esc(n.name)}</b><span>Roll ${n.roll} · ${total?s.pct+"%":"no data"}</span></div><div class="ptr">next</div></div><span class="arrow"></span>`}).join(""):"")+'<span class="tag">NULL</span>';
+const dt=$("date").value;
+$("calls").innerHTML=nodes.length?nodes.map(n=>{const r=n.records[dt];
+return `<div class="call"><span>${n.roll}. ${esc(n.name)}</span><span class="seg" data-roll="${n.roll}">${["P","A","L"].map(k=>`<button data-s="${k}" class="${r===k?"on":""}" aria-pressed="${r===k}" title="${{P:"Present",A:"Absent",L:"Late"}[k]}">${k}</button>`).join("")}<button class="x" data-del="${n.roll}" title="Remove student" aria-label="Remove ${esc(n.name)}">✕</button></span></div>`}).join(""):'<p class="msg">The list is empty. Add a student to start.</p>';
+const sts=nodes.map(n=>stat(n,total));
+const avg=sts.length&&total?Math.round(sts.reduce((a,s)=>a+s.pct,0)/sts.length):0;
+const short=nodes.filter((n,i)=>total&&sts[i].pct<75).length;
+$("stats").innerHTML=`<div><b>${list.size}</b><span>students in list</span></div><div><b>${total}</b><span>sessions recorded</span></div><div><b>${avg}%</b><span>class average</span></div><div><b>${short}</b><span>below 75%</span></div>`;
+$("rows").innerHTML=nodes.map((n,i)=>{const s=sts[i],low=total&&s.pct<75;
+return `<tr><td>${n.roll}</td><td>${esc(n.name)}</td><td>${s.p}</td><td>${s.l}</td><td>${s.a}</td><td><div class="bar" title="${s.pct}%"><i class="${low?"low":""}" style="width:${s.pct}%"></i></div>${s.pct}%</td><td>${low?"Short":"OK"}</td></tr>`}).join("");
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+
+$("date").value=today;
+$("date").addEventListener("change",render);
+$("calls").addEventListener("click",e=>{
+const b=e.target.closest("button");if(!b)return;
+if(b.dataset.del){const r=+b.dataset.del;list.remove(r);if(hit===r)hit=null;save();render();return}
+const roll=+b.parentElement.dataset.roll,{node}=list.find(roll),dt=$("date").value;
+if(!node||!dt)return;node.records[dt]=b.dataset.s;save();render();
+});
+$("allP").addEventListener("click",()=>{const dt=$("date").value;if(!dt)return;list.toArray().forEach(n=>n.records[dt]="P");save();render()});
+$("addBtn").addEventListener("click",()=>{
+const roll=parseInt($("roll").value,10),name=$("name").value.trim(),m=$("addMsg");
+if(!roll||roll<1){m.textContent="Enter a roll number of 1 or more.";return}
+if(!name){m.textContent="Enter the student’s name.";return}
+if(list.find(roll).node){m.textContent="Roll "+roll+" already exists. Use a different roll number.";return}
+list.append(new Node(roll,name));save();$("roll").value="";$("name").value="";m.textContent=name+" added at the end of the list.";render();
+});
+function doSearch(){
+const roll=parseInt($("q").value,10),m=$("searchMsg");
+if(!roll){m.textContent="Enter a roll number to search.";return}
+const r=list.find(roll);hit=r.node?roll:null;
+m.textContent=r.node?`Found ${r.node.name} after visiting ${r.steps} node${r.steps>1?"s":""}.`:`Roll ${roll} not found. All ${r.steps} node${r.steps===1?"":"s"} visited.`;
+render();
+}
+$("searchBtn").addEventListener("click",doSearch);
+$("q").addEventListener("keydown",e=>{if(e.key==="Enter")doSearch()});
+function doDelete(){
+const roll=parseInt($("delRoll").value,10),m=$("delMsg");
+if(!roll){m.textContent="Enter the roll number to delete.";return}
+const r=list.find(roll);
+if(!r.node){m.textContent=`Roll ${roll} not found. Nothing was deleted.`;return}
+const nm=r.node.name;list.remove(roll);if(hit===roll)hit=null;save();$("delRoll").value="";
+m.textContent=`Deleted roll ${roll} (${nm}). The previous node now points to the next one.`;render();
+}
+$("delBtn").addEventListener("click",doDelete);
+$("delRoll").addEventListener("keydown",e=>{if(e.key==="Enter")doDelete()});
+load();render();
+</script>
+</body>
+</html>
